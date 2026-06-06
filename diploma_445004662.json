@@ -1,0 +1,14 @@
+{
+  "document": {
+    "student_name": "renad naser alharbi",
+    "student_id": "445004662",
+    "degree": "cyber",
+    "Issuing Institution": "UQU",
+    "TimeStamp": "2026-06-06T00:46:13.027865+00:00",
+    "document_id": "CERT-10D20213"
+  },
+  "signature": {
+    "algorithm": "ECDSA-SHA256",
+    "value": "MEUCIQD1Twq7Ko6gnwe6AZxbOxCo7pvscjKK3QpK3SFy/1ONIwIgRG/6+MOtXkJ2HzQ8deS3UDOkFr2WQcDmWqobnWMymWw="
+  }
+}

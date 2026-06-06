@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Secure Diploma Signing & Verification — UQU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink:       #e2e8f0; /* Crisp off-white text for dark mode */
+    --paper:     #0d0f12; /* Premium dark background */
+    --cream:     #1e232b; /* Subtle grey-blue container fields */
+    --gold:      #d4af37; /* Vibrant metallic brass gold */
+    --gold-lt:   #f3e5ab; /* Soft gold accent highlight */
+    --red:       #e63946; /* Clear alarm red */
+    --green:     #2a9d8f; /* Clean cryptographic green */
+    --border:    #2d3748; /* Clean dark-mode grid borders */
+    --mono:      'DM Mono', monospace;
+    --serif:     'Playfair Display', Georgia, serif;
+    --sans:      'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: #07080a;
+    color: var(--ink);
+    padding: 2rem 2.5rem 1.5rem;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg, transparent, transparent 40px,
+      rgba(212,175,55,0.03) 40px, rgba(212,175,55,0.03) 41px
+    );
+  }
+  .header-inner { position: relative; max-width: 900px; margin: 0 auto; }
+  header h1 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    margin-bottom: 4px;
+  }
+  header h1 span { color: var(--gold); }
+  header p { font-size: 12px; color: #718096; letter-spacing: 0.05em; text-transform: uppercase; }
+
+  /* ── Layout ── */
+  .layout { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 2rem;
+    gap: 0;
+  }
+  .tab {
+    padding: 10px 22px;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #718096;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: color .2s, border-color .2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .tab .num {
+    width: 20px; height: 20px;
+    background: var(--cream);
+    border-radius: 50%;
+    font-size: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+    color: #a0aec0;
+    transition: background .2s, color .2s;
+  }
+  .tab.active { color: var(--ink); border-bottom-color: var(--gold); }
+  .tab.active .num { background: var(--gold); color: #0d0f12; }
+  .tab:hover:not(.active) { color: var(--ink); }
+
+  /* ── Section ── */
+  .section { display: none; animation: fadeIn .25s ease; }
+  .section.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ── Card ── */
+  .card {
+    background: #161a22;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .card-title {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--gold-lt);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-title::before {
+    content: '';
+    display: block;
+    width: 3px; height: 18px;
+    background: var(--gold);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .card-desc { font-size: 12.5px; color: #a0aec0; margin-bottom: 1.25rem; line-height: 1.6; }
+
+  /* ── Form ── */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  @media(max-width:560px){ .grid2 { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: #a0aec0; }
+  .field input, .field select {
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 13px;
+    background: #0d0f12;
+    color: var(--ink);
+    transition: border-color .15s, background-color .15s;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: var(--gold); background: #161a22; }
+  .field input[type=password] { font-family: var(--mono); letter-spacing: 0.1em; }
+
+  /* ── Buttons ── */
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .btn {
+    padding: 9px 18px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    background: #161a22;
+    color: var(--ink);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s, border-color .15s;
+  }
+  .btn:hover { background: var(--cream); border-color: #4a5568; }
+  .btn-primary { background: var(--gold); color: #0d0f12; border-color: var(--gold); }
+  .btn-primary:hover { background: #e9c44f; border-color: #e9c44f; }
+  .btn-danger  { background: var(--red); color: #fff; border-color: var(--red); }
+  .btn-danger:hover { background: #bd2f3c; }
+
+  /* ── Output / Terminal ── */
+  .terminal {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    background: #050608;
+    color: #cbd5e0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    line-height: 1.7;
+    display: none;
+    position: relative;
+  }
+  .terminal .t-label {
+    position: absolute;
+    top: 8px; right: 10px;
+    font-size: 10px;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .t-key    { color: var(--gold-lt); }
+  .t-val    { color: #a8d5b5; }
+  .t-ok     { color: #4ade80; font-weight: 500; }
+  .t-fail   { color: #f87171; font-weight: 500; }
+  .t-dim    { color: #4a5568; }
+  .t-time   { color: var(--gold); }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px;
+    border-radius: 3px;
+    font-size: 13px; font-weight: 500;
+    margin-top: 1rem;
+  }
+  .badge-ok   { background: rgba(42,157,143,0.15); color: #4ade80; border: 1px solid rgba(42,157,143,0.3); }
+  .badge-fail { background: rgba(230,57,70,0.15); color: #f87171;  border: 1px solid rgba(230,57,70,0.3); }
+  .badge-info { background: rgba(212,175,55,0.1); color: var(--gold-lt); border: 1px solid rgba(212,175,55,0.25); }
+
+  /* ── University key store ── */
+  .key-store {
+    background: var(--cream);
+    border: 1px dashed var(--border);
+    border-radius: 3px;
+    padding: .75rem 1rem;
+    margin-bottom: 1rem;
+    font-size: 12px;
+    color: #a0aec0;
+  }
+  .key-store strong { color: var(--ink); }
+  .key-store .key-list { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .key-chip {
+    background: #0d0f12; color: var(--gold-lt);
+    border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 20px;
+    font-family: var(--mono); font-size: 11px;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .key-chip:hover { background: var(--gold); color: #0d0f12; }
+
+  /* ── Diploma preview ── */
+  .diploma-preview {
+    border: 2px solid var(--gold);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #161a22 0%, #0d0f12 100%);
+    margin-top: 1rem;
+    display: none;
+    position: relative;
+  }
+  .diploma-preview::before {
+    content: 'SIGNED DIPLOMA';
+    position: absolute; top: -10px; left: 20px;
+    background: var(--gold); color: #0d0f12;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 1px 8px; border-radius: 2px;
+  }
+  .diploma-preview h3 {
+    font-family: var(--serif);
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--gold);
+  }
+  .diploma-preview .dp-row {
+    display: flex; justify-content: space-between;
+    border-bottom: 1px dotted var(--border);
+    padding: 4px 0; font-size: 12.5px;
+  }
+  .diploma-preview .dp-row span:first-child { color: #a0aec0; }
+  .diploma-preview .dp-row span:last-child { font-weight: 500; color: var(--ink); }
+  .diploma-preview .sig-box {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #718096;
+    word-break: break-all;
+    background: #0d0f12;
+    padding: 6px 8px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Secure Diploma System</h1>
+    <p>SEC3104 Advanced Cryptography </p>
+  </div>
+</header>
+
+<div class="layout">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('keygen',this)">
+      <span class="num">1</span> Key Generation
+    </button>
+    <button class="tab" onclick="switchTab('sign',this)">
+      <span class="num">2</span> Sign Diploma
+    </button>
+    <button class="tab" onclick="switchTab('verify',this)">
+      <span class="num">3</span> Verify Diploma
+    </button>
+  </div>
+
+  <!-- ══ TAB 1: KEY GENERATION ══ -->
+  <div id="keygen" class="section active">
+    <div class="card">
+      <div class="card-title">University Key Generation</div>
+      <p class="card-desc">
+        the university generates an ECDSA P-256 key pair.
+        The private key is encrypted with a password and stored securely.
+        The public key is distributed openly to all verifiers.
+      </p>
+      <div class="grid2">
+        <div class="field">
+          <label>University Name</label>
+          <input type="text" id="kg-uni" placeholder="e.g. uqu, kau" value="uqu"/>
+        </div>
+        <div class="field">
+          <label>Private Key Password</label>
+          <input type="password" id="kg-pass" placeholder="Enter password" value="uqu-secret"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doKeygen()"> Generate Key Pair</button>
+      </div>
+      <div class="terminal" id="kg-out"><span class="t-label">terminal</span></div>
+      <div id="kg-badge"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 2: SIGN DIPLOMA ══ -->
+  <div id="sign" class="section">
+    <div class="card">
+      <div class="card-title">Issue & Sign Diploma</div>
+      <p class="card-desc">
+        the university fills in student details, hashes the diploma
+        content with SHA-256, signs it with the private key, and saves the package as diploma_{student_id}.json
+      </p>
+
+      <div id="key-store-sign" class="key-store">
+        <strong>Available university keys:</strong> <span id="ks-sign-none">None yet — generate keys first in Tab 1.</span>
+        <div class="key-list" id="ks-sign-list"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Student Name</label>
+          <input type="text" id="s-name" value="Fill name"/>
+        </div>
+        <div class="field">
+          <label>Student ID</label>
+          <input type="text" id="s-id" value="123456"/>
+        </div>
+        <div class="field">
+          <label>Degree</label>
+          <input type="text" id="s-degree" value="Bachelor of Computer Science"/>
+        </div>
+        <div class="field">
+          <label>Issuing Institution</label>
+          <input type="text" id="s-inst" value="Umm Al-Qura University"/>
+        </div>
+        <div class="field">
+          <label>University Key to Sign With</label>
+          <select id="s-uni-sel"><option value="">— select university —</option></select>
+        </div>
+        <div class="field">
+          <label>Private Key Password</label>
+          <input type="password" id="s-pass" placeholder="Password for selected key"/>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="doSign()">Sign Diploma</button>
+      </div>
+      <div class="terminal" id="sign-out"><span class="t-label">terminal</span></div>
+      <div class="diploma-preview" id="diploma-preview"></div>
+      <div id="sign-badge"></div>
+    </div>
+  </div>
+
+  <!-- ══ TAB 3: VERIFY ══ -->
+  <div id="verify" class="section">
+    <div class="card">
+      <div class="card-title">Verify Diploma Authenticity</div>
+      <p class="card-desc">
+         the verifier selects a diploma and a university public key. The system recomputes the SHA-256 hash over the <code>document</code> field and checks
+        the ECDSA signature.
+      </p>
+
+      <div id="key-store-verify" class="key-store">
+        <strong>Available university public keys:</strong> <span id="ks-verify-none">None yet — generate keys first in Tab 1.</span>
+        <div class="key-list" id="ks-verify-list"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Select Diploma to Verify</label>
+          <select id="v-diploma-sel"><option value="">— select diploma —</option></select>
+        </div>
+        <div class="field">
+          <label>Verify Against University Key</label>
+          <select id="v-uni-sel"><option value="">— select university —</option></select>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary"  onclick="doVerify()"> Verify</button>
+        <button class="btn btn-danger"   onclick="doTamper()">✗ Tamper Diploma</button>
+        <button class="btn"              onclick="doWrongKey()"> Use Wrong Key</button>
+      </div>
+      <div class="terminal" id="verify-out"><span class="t-label">terminal</span></div>
+      <div id="verify-badge"></div>
+    </div>
+  </div>
+
+</div><!-- /layout -->
+
+<script>
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+const state = {
+  keys:    {},   // { uniName: { privateKey, publicKey, password } }
+  diplomas: {}   // { filename: signedDiplomaObj }
+};
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  el.classList.add('active');
+}
+
+function show(id, html) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  el.innerHTML = '<span class="t-label">terminal</span>' + html;
+}
+
+function badge(id, type, msg) {
+  const icons = { ok: '✓', fail: '✗', info: '◉' };
+  document.getElementById(id).innerHTML =
+    `<span class="badge badge-${type}">${icons[type]} ${msg}</span>`;
+}
+
+function genDocId() {
+  return 'CERT-' + Math.random().toString(36).substring(2,10).toUpperCase();
+}
+
+function nowISO() {
+  return new Date().toISOString().replace('Z','+00:00');
+}
+
+function ab2b64(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)));
+}
+
+function b642ab(str) {
+  const bin = atob(str);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+
+function updateSelects() {
+  const unis = Object.keys(state.keys);
+  // sign select
+  const sSel = document.getElementById('s-uni-sel');
+  sSel.innerHTML = '<option value="">— select university —</option>';
+  unis.forEach(u => sSel.innerHTML += `<option value="${u}">${u.toUpperCase()}</option>`);
+  // verify uni select
+  const vSel = document.getElementById('v-uni-sel');
+  vSel.innerHTML = '<option value="">— select university —</option>';
+  unis.forEach(u => vSel.innerHTML += `<option value="${u}">${u.toUpperCase()} public key</option>`);
+  // verify diploma select
+  const dSel = document.getElementById('v-diploma-sel');
+  dSel.innerHTML = '<option value="">— select diploma —</option>';
+  Object.keys(state.diplomas).forEach(f =>
+    dSel.innerHTML += `<option value="${f}">${f}</option>`
+  );
+  // key store chips
+  ['sign','verify'].forEach(ctx => {
+    const list = document.getElementById(`ks-${ctx}-list`);
+    const none = document.getElementById(`ks-${ctx}-none`);
+    if (unis.length) {
+      none.style.display = 'none';
+      list.innerHTML = unis.map(u =>
+        `<span class="key-chip" title="Click to autofill"
+          onclick="document.getElementById('${ctx==='sign'?'s-uni-sel':'v-uni-sel'}').value='${u}'"
+        >${u}_public_key.pem</span>`
+      ).join('');
+    } else {
+      none.style.display = '';
+      list.innerHTML = '';
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// TAB 1 — KEYGEN
+// ══════════════════════════════════════════════════
+async function doKeygen() {
+  const uni  = document.getElementById('kg-uni').value.trim().toLowerCase();
+  const pass = document.getElementById('kg-pass').value;
+  if (!uni || !pass) { alert('Enter university name and password.'); return; }
+
+  const t0 = performance.now();
+  const kp = await crypto.subtle.generateKey(
+    { name:'ECDSA', namedCurve:'P-256' }, true, ['sign','verify']
+  );
+  const ms = (performance.now() - t0).toFixed(3);
+
+  state.keys[uni] = { privateKey: kp.privateKey, publicKey: kp.publicKey, password: pass };
+
+  const pubExport = await crypto.subtle.exportKey('spki', kp.publicKey);
+  const pubB64    = ab2b64(pubExport);
+
+  show('kg-out',
+    `<span class="t-dim">$ python keygen.py</span>\n` +
+    `Enter University Name: <span class="t-val">${uni}</span>\n` +
+    `Enter password: <span class="t-val">••••••••</span>\n\n` +
+    `<span class="t-dim">Algorithm  :</span> ECDSA over NIST P-256 (SECP256R1)\n` +
+    `<span class="t-dim">Private key:</span> <span class="t-val">${uni}_private_key.pem</span> <span class="t-dim">[encrypted — password protected]</span>\n` +
+    `<span class="t-dim">Public key :</span> <span class="t-val">${uni}_public_key.pem</span> <span class="t-dim">[distributed openly]</span>\n\n` +
+    `<span class="t-dim">Public key (Base64/SPKI):</span>\n<span class="t-key">${pubB64.match(/.{1,64}/g).join('\n')}</span>\n\n` +
+    `ECC key pair generated and securely stored.\n` +
+    `<span class="t-time">Execution Time: ${ms} ms</span>`
+  );
+
+  badge('kg-badge','ok', `Key pair generated for ${uni.toUpperCase()}`);
+  updateSelects();
+}
+
+// ══════════════════════════════════════════════════
+// TAB 2 — SIGN
+// ══════════════════════════════════════════════════
+async function doSign() {
+  const uni    = document.getElementById('s-uni-sel').value;
+  const pass   = document.getElementById('s-pass').value;
+  const name   = document.getElementById('s-name').value.trim();
+  const sid    = document.getElementById('s-id').value.trim();
+  const degree = document.getElementById('s-degree').value.trim();
+  const inst   = document.getElementById('s-inst').value.trim();
+
+  if (!uni)  { alert('Select a university key.'); return; }
+  if (!state.keys[uni]) { alert('Key not found. Generate it first.'); return; }
+  if (pass !== state.keys[uni].password) { alert('Wrong password for this university key.'); return; }
+  if (!name || !sid) { alert('Fill in student name and ID.'); return; }
+
+  const t0 = performance.now();
+
+  const theDoc = {
+    "Issuing Institution": inst,
+    "TimeStamp":           nowISO(),
+    "degree":              degree,
+    "document_id":         genDocId(),
+    "student_id":          sid,
+    "student_name":        name
+  };
+
+  // sort_keys=True equivalent — sort alphabetically
+  const sortedKeys = Object.keys(theDoc).sort();
+  const canonical  = {};
+  sortedKeys.forEach(k => canonical[k] = theDoc[k]);
+  const content    = new TextEncoder().encode(JSON.stringify(canonical));
+
+  const sigBuf = await crypto.subtle.sign(
+    { name:'ECDSA', hash:'SHA-256' },
+    state.keys[uni].privateKey,
+    content
+  );
+  const sigB64 = ab2b64(sigBuf);
+
+  // SHA-256 hash for display
+  const hashBuf = await crypto.subtle.digest('SHA-256', content);
+  const hashHex = Array.from(new Uint8Array(hashBuf))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+
+  const ms = (performance.now() - t0).toFixed(3);
+
+  const signedDiploma = {
+    document:  canonical,
+    signature: { algorithm: 'ECDSA-SHA256', value: sigB64 }
+  };
+  const filename = `diploma_${sid}.json`;
+  state.diplomas[filename] = signedDiploma;
+
+  show('sign-out',
+    `<span class="t-dim">$ python sign.py</span>\n` +
+    `Enter university key: <span class="t-val">${uni}_private_key.pem</span>\n` +
+    `Enter password: <span class="t-val">••••••••</span>\n\n` +
+    `<span class="t-dim">Diploma content serialized (sort_keys=True):</span>\n` +
+    `<span class="t-key">m = json.dumps(diploma, sort_keys=True).encode()</span>\n\n` +
+    `<span class="t-dim">SHA-256 hash:</span>\n<span class="t-key">${hashHex}</span>\n\n` +
+    `<span class="t-dim">ECDSA signature (Base64):</span>\n<span class="t-val">${sigB64.substring(0,60)}...</span>\n\n` +
+    `Signed diploma saved as <span class="t-val">${filename}</span>\n` +
+    `<span class="t-time">Execution Time: ${ms} ms</span>`
+  );
+
+  // Diploma preview
+  const prev = document.getElementById('diploma-preview');
+  prev.style.display = 'block';
+  prev.innerHTML = `
+    <h3>${inst}</h3>
+    ${[
+      ['Student Name', name],
+      ['Student ID',   sid],
+      ['Degree',       degree],
+      ['Document ID',  canonical.document_id],
+      ['Issued At',    canonical.TimeStamp.substring(0,19)+'Z'],
+      ['Signed By',    uni.toUpperCase() + ' private key']
+    ].map(([k,v]) =>
+      `<div class="dp-row"><span>${k}</span><span>${v}</span></div>`
+    ).join('')}
+    <div class="sig-box">σ = ${sigB64}</div>
+  `;
+
+  badge('sign-badge','ok', `Diploma signed and saved as ${filename}`);
+  updateSelects();
+}
+
+// ══════════════════════════════════════════════════
+// TAB 3 — VERIFY
+// ══════════════════════════════════════════════════
+async function doVerify(tampered=false, wrongKey=false) {
+  const dFile = document.getElementById('v-diploma-sel').value;
+  const uKey  = document.getElementById('v-uni-sel').value;
+
+  if (!dFile) { alert('Select a diploma to verify.'); return; }
+  if (!uKey)  { alert('Select a university public key.'); return; }
+  if (!state.diplomas[dFile]) { alert('Diploma not found.'); return; }
+  if (!state.keys[uKey]) { alert('Key not found.'); return; }
+
+  const t0 = performance.now();
+
+  // Deep copy the diploma
+  let diploma = JSON.parse(JSON.stringify(state.diplomas[dFile]));
+
+  // Apply tampering
+  if (tampered) {
+    diploma.document.student_name = 'HACKED NAME';
+    diploma.document.degree       = 'PhD of Computer Science';
+  }
+
+  // Select key
+  let pubKey = wrongKey
+    ? (await crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign','verify'])).publicKey
+    : state.keys[uKey].publicKey;
+
+  const sigBytes = b642ab(diploma.signature.value);
+  const content  = new TextEncoder().encode(JSON.stringify(diploma.document));
+
+  // Recompute hash
+  const hashBuf  = await crypto.subtle.digest('SHA-256', content);
+  const hashHex  = Array.from(new Uint8Array(hashBuf))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+
+  let valid = false;
+  try {
+    valid = await crypto.subtle.verify(
+      { name:'ECDSA', hash:'SHA-256' }, pubKey, sigBytes, content
+    );
+  } catch(e) { valid = false; }
+
+  const ms = (performance.now() - t0).toFixed(3);
+  const doc = diploma.document;
+
+  const detailLines =
+    `<span class="t-dim">Student Name :</span> ${doc.student_name}\n` +
+    `<span class="t-dim">Student ID   :</span> ${doc.student_id}\n` +
+    `<span class="t-dim">Degree       :</span> ${doc.degree}\n` +
+    `<span class="t-dim">University   :</span> ${doc['Issuing Institution']}\n` +
+    `<span class="t-dim">Issued At    :</span> ${doc.TimeStamp}\n` +
+    `<span class="t-dim">Document ID  :</span> ${doc.document_id}\n`;
+
+  const reason = tampered
+    ? '<span class="t-dim">Reason       : Student name and degree were modified after signing</span>\n'
+    : wrongKey
+    ? '<span class="t-dim">Reason       : Wrong university public key used for verification</span>\n'
+    : '';
+
+  show('verify-out',
+    `<span class="t-dim">$ python verify.py</span>\n` +
+    `Enter diploma filename: <span class="t-val">${dFile}</span>\n` +
+    `Enter university key: <span class="t-val">${uKey}_public_key.pem</span>\n\n` +
+    `--- Diploma Details ---\n` + detailLines +
+    `\n<span class="t-dim">Recomputed SHA-256 hash:</span>\n<span class="t-key">${hashHex}</span>\n\n` +
+    `--- Verification ---\n` +
+    (valid
+      ? `<span class="t-ok">✓ Diploma is VALID and authentic, Signature matches.</span>\n`
+      : `<span class="t-fail">✗ Diploma is INVALID, the Signature does not match.</span>\n`) +
+    reason +
+    `<span class="t-time">Execution Time: ${ms} ms</span>`
+  );
+
+  badge('verify-badge',
+    valid ? 'ok' : 'fail',
+    valid ? 'Diploma is VALID and authentic' : 'Diploma is INVALID — signature rejected'
+  );
+}
+
+function doTamper() {
+  if (!document.getElementById('v-diploma-sel').value) {
+    alert('Select a diploma first.'); return;
+  }
+  badge('verify-badge','info','Diploma tampered — student name and degree changed. Click Verify.');
+  document.getElementById('verify-out').style.display = 'none';
+  doVerify(true, false);
+}
+
+function doWrongKey() {
+  if (!document.getElementById('v-diploma-sel').value) {
+    alert('Select a diploma first.'); return;
+  }
+  doVerify(false, true);
+}
+
+</script>
+</body>
+</html>
