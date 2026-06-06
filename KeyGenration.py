@@ -1,3 +1,4 @@
+import time
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import os
@@ -7,6 +8,7 @@ uni_name = input("Enter University Name (e.g., UQU, KAU): ").strip().lower()
 PRIVATE_KEY_FILE = f"{uni_name}_private_key.pem"
 PUBLIC_KEY_FILE = f"{uni_name}_public_key.pem"
 password = getpass.getpass("Enter a password to encrypt the private key: ").encode()
+start = time.perf_counter()
 try:
     # Generate key pair
     private_key = ec.generate_private_key(ec.SECP256R1())
@@ -28,5 +30,6 @@ try:
         ))
 
     print("ECC key pair generated and securely stored.")
+    print(f"Execution Time (crypto only): {(time.perf_counter() - start) * 1000:.3f} ms")
 except Exception as e:
     print("Error generating keys:", e)

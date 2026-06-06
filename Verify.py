@@ -1,4 +1,5 @@
 import json, base64
+import time
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.exceptions import InvalidSignature
@@ -22,7 +23,7 @@ try:
 except Exception:
     print("ERROR: Signature is corrupted or not valid Base64.")
     exit()
-
+start = time.perf_counter()
 content = json.dumps(diploma['document'], sort_keys=True).encode()
 
 uni_key = input("Enter the verifying University key file (e.g., uqu_public_key.pem): ").strip()
@@ -33,5 +34,6 @@ print("\n--- Verification ---")
 try:
     public_key.verify(signature, content, ec.ECDSA(hashes.SHA256()))
     print("Diploma is VALID and authentic, Signature matches.")
+    print(f"Execution Time (crypto only): {(time.perf_counter() - start) * 1000:.3f} ms")
 except InvalidSignature:
     print("Diploma is INVALID, the Signature does not match.")
