@@ -1,0 +1,14 @@
+{
+  "document": {
+    "student_name": "noor alharbi",
+    "student_id": "445003232",
+    "degree": "HCI",
+    "Issuing Institution": "KAU",
+    "TimeStamp": "2026-06-06T01:15:03.148402+00:00",
+    "document_id": "CERT-02928EED"
+  },
+  "signature": {
+    "algorithm": "ECDSA-SHA256",
+    "value": "MEUCIQCCb4NPzYw19PI14/1CNpGyc+a0X6CjMRPapAuqkj/lbQIgMT/2xHyMFboKuV8KId18t2ngsN1E1ubw3fdgXFtKpqI="
+  }
+}
