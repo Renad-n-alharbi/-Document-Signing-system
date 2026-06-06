@@ -1,4 +1,3 @@
-
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
 import os
@@ -21,7 +20,6 @@ try:
             encryption_algorithm=serialization.BestAvailableEncryption(password)
         ))
 
-
     # Save public key
     with open(PUBLIC_KEY_FILE, "wb") as f:
         f.write(public_key.public_bytes(
@@ -32,4 +30,3 @@ try:
     print("ECC key pair generated and securely stored.")
 except Exception as e:
     print("Error generating keys:", e)
-

@@ -3,7 +3,9 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
 from datetime import datetime, timezone
 import uuid
+import getpass
 print("=== University Diploma Signing System ===\n")
+
 TheDiploma = {
     "student_name": input("Student Name: ").strip(),
     "student_id": input("Student ID: ").strip(),
@@ -15,7 +17,6 @@ TheDiploma = {
 content = json.dumps(TheDiploma, sort_keys=True).encode()
 
 uni_key = input("Enter the path to the university's private key file (e.g., uqu_private_key.pem): ")
-import getpass
 with open(uni_key, "rb") as f:
     password = getpass.getpass("Enter the private key password: ").encode()
     private_key = serialization.load_pem_private_key(f.read(), password=password)
@@ -30,7 +31,6 @@ signed_diploma = {
     }
 }
 filename = f"diploma_{TheDiploma['student_id']}.json"
-
 with open(filename, "w") as f:
     json.dump(signed_diploma, f, indent=2)
 
